@@ -1,0 +1,46 @@
+name: Déployer la PWA sur GitHub Pages
+
+# Déploie le site statique (la PWA Différentiel) à chaque push sur la branche,
+# et permet un déclenchement manuel depuis l'onglet Actions.
+on:
+  push:
+    branches:
+      - claude/pwa-conversion-differentiel-h0yzu6
+  workflow_dispatch:
+
+# Permissions requises par le déploiement Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois ; on n'annule pas un déploiement en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Configurer Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Tente d'activer Pages (source « GitHub Actions ») automatiquement.
+          enablement: true
+
+      - name: Téléverser l'artefact du site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Racine du dépôt : index.html, sw.js, manifest.webmanifest, icons/.
+          path: "."
+
+      - name: Déployer sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
